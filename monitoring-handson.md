@@ -109,10 +109,7 @@ Expression Browser 上でクエリを実行し、 PromQL におけるラベル�
 
 監視対象となるサンプルアプリケーションを起動します。 Deployment, およびアプリケーションを公開する Service の作成を行います。
 
-CodeReady Workspace にアクセスし、クラスタ管理ユーザでログインします。その後、 Python の環境を起動してターミナル上で以下を実行します。
-
-- Python ワークスペース作成方法 : 「Getting Started with CodeReady Workspaces」画面の「Select a Sample」で "python" を検索 -> 「Python」 Stack を選択
-- ターミナル起動方法 : 「Terminal」タブ -> 「Open Terminal in specific container」 -> 「Python」
+Web Console にアクセスし、クラスタ管理ユーザでログインします。その後、 Web Terminal を起動して以下を実行します。
 
 ```
 1. クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定

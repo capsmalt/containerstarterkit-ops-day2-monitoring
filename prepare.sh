@@ -21,7 +21,7 @@ for userid in $(seq ${USERNUM}); do
     users+=("user${userid}")
 done
 
-oc login -u opentlc-mgr -p r3dh4t1! https://api.cluster-${GUID}.${GUID}.${SANDBOXZONE}:6443
+oc login -u opentlc-mgr -p r3dh4t1! https://api.cluster-${GUID}.${GUID}.${SANDBOXZONE}.opentlc.com:6443
 
 oc adm groups new handson-cluster-admins "${users[@]}"
 oc adm policy add-cluster-role-to-group cluster-admin handson-cluster-admins --rolebinding-name=handson-cluster-admins
