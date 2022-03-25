@@ -18,10 +18,11 @@
   -->
 - [2. Expression Browser でのメトリクス情報参照](#2-expression-browser-でのメトリクス情報参照)
   - [2.1. OpenShift Web コンソール に管理者ユーザでログイン](#21-openshift-web-コンソール-に管理者ユーザでログイン)
-  - [2.2. 監視対象サンプルアプリケーションのデプロイ](#21-監視対象サンプルアプリケーションのデプロイ)
-  - [2.3. Prometheus Expression Browser へのログイン方法](#22-prometheus-expression-browser-へのログイン方法)
+  - [2.2. 監視対象サンプルアプリケーションのデプロイ](#22-監視対象サンプルアプリケーションのデプロイ)
+  - [2.3. Prometheus Expression Browser での PromQL クエリ実行](#23-prometheus-expression-browser-での-promql-クエリ実行)
   <!--
-    - [2.3.1. PromQL クエリの実行](#221-promql-クエリの実行)
+    - [2.3.1. Prometheus Web UI へのアクセス](#231-prometheus-web-ui-へのアクセス)  
+    - [2.3.2. PromQL クエリの実行](#231-promql-クエリの実行)
   -->
 - [3. 開発者向けユーザ定義 Project に対する監視の利用](#3-開発者向けユーザ定義-project-に対する監視の利用)
   - [3.1. 開発者向けユーザ定義 Project に対する監視の有効化](#31-開発者向けユーザ定義-project-に対する監視の有効化)
@@ -31,9 +32,9 @@
   - [3.5. アラートルールの作成](#35-アラートルールの作成)
   - [3.6. OpenShift Web コンソール (Developer パースペクティブ)](#36-openshift-web-コンソール-developer-パースペクティブ)
   <!--
-    - [3.6.1. メトリクス](#361-メトリクス)
-    - [3.6.2. アラート](#362-アラート)
-    - [3.6.3. ダッシュボード](#363-ダッシュボード)
+    - [3.6.1. メトリクス (Developer パースペクティブ)](#361-メトリクス-developer-パースペクティブ)
+    - [3.6.2. アラート (Developer パースペクティブ)](#362-アラート-developer-パースペクティブ)
+    - [3.6.3. ダッシュボード (Developer パースペクティブ)](#363-ダッシュボード-developer-パースペクティブ)
   -->
 - [4. クラスタで問題が発生した場合のオペレーションの流れ](#4-クラスタで問題が発生した場合のオペレーションの流れ)
 
@@ -94,6 +95,7 @@ OpenShift クラスタにログイン後、画面左上のパースペクティ�
 例えば、 "openshift-monitoring" を検索し、 openshift-monitoring project を選択すると、 Cluster Monitoring を構成する Pod のリソース使用状況が確認できます。
 
 ![](./images/console_overview_project.png)  
+
 --- 
 
 #### 1.2.3. アラート
@@ -113,7 +115,7 @@ OpenShift クラスタにログイン後、画面左上のパースペクティ�
 外部システムへの通知設定はアラートレシーバを作成することで設定します。
 アラートレシーバには通知を行うアラートのラベル *1 によるフィルタリング設定、レシーバタイプとして通知する外部システムを設定します。
 
-デフォルトで定義されているレシーバは以下の 3 種類です。ただし、これらのレシーバには通知先システムを指定するレシーバタイプが設定されていないため、設定を行っていきます **(講師が実施します)**。
+デフォルトで定義されているレシーバは以下の 3 種類です。ただし、これらのレシーバには通知先システムを指定するレシーバタイプが設定されていないため、設定を行っていきます。 **(講師が実施します)**
 
 -  Critical : 重大度が Critical のアラートを通知
 -  Default : 他のレシーバーがキャッチしていないすべてのアラートを通知
@@ -158,12 +160,16 @@ sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))
 前の手順では、Web コンソール上のメトリクス画面でクエリを実行しましたが、 Cluster Monitoring のメトリクス収集を担う Prometheus が持つ Expression Browser 上で PromQL クエリを実行することも可能です。
 Expression Browser 上でクエリを実行し、 PromQL におけるラベルの指定方法、時間範囲の指定方法、演算子、関数の利用方法を確認します。
 
+---
+
 ### 2.1. OpenShift Web コンソール に管理者ユーザでログイン
 WebブラウザよりOpenShift Web Conosole へアクセスし、クラスタ管理ユーザでログインします。
 
 ※URLはEtherpadの環境情報"Openshift Console"を参照  
 "userX"でログインします。  
 ![](./images/login.png)  
+
+---
 
 ### 2.2. 監視対象サンプルアプリケーションのデプロイ
 
@@ -177,20 +183,25 @@ Web Terminal を起動します。
 
 以下を Web Terminal 上で実行します。
 
-
+クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定
 ```
-1. クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定
-ADMINID=<管理ユーザID>  
-DEVID=<開発ユーザID>
+$ ADMINID=<管理ユーザID>   // 例: user1
+$ DEVID=<開発ユーザID>     // 例: user1-dev
+```
 
-2. 開発者権限のユーザでログインする
-oc login -u ${DEVID} -p openshift
+開発者権限のユーザでログイン
+```
+$ oc login -u ${DEVID} -p openshift
+```
 
-3. Project 作成
-oc new-project monitoring-example-${DEVID}
+Project 作成
+```
+$ oc new-project monitoring-example-${DEVID}
+```
 
-4. Deployment の作成
-cat << EOF | oc apply -f -
+Deployment の作成
+```
+$ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -220,9 +231,11 @@ spec:
             cpu: 50m
             memory: 50Mi
 EOF
+```
 
-5. Service の作成
-cat << EOF | oc apply -f -
+Service の作成
+```
+$ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Service
 metadata:
@@ -240,26 +253,55 @@ spec:
     app: prometheus-example-app
   type: ClusterIP
 EOF
+```
 
+オブジェクトの作成及び Pod の起動確認
+```
+$ oc get pod,svc
 
-6. オブジェクトの作成及び Pod の起動確認
-oc get pod,svc
+出力例:
+
 NAME                                          READY   STATUS    RESTARTS   AGE
-pod/prometheus-example-app-79697bd67f-pbv72   1/1     Running   0          2m3s
+pod/prometheus-example-app-645847ddf7-7npq2   1/1     Running   0          21s
 
-NAME                             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-service/prometheus-example-app   ClusterIP   172.30.150.53   <none>        8080/TCP   65s
+NAME                             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+service/prometheus-example-app   ClusterIP   172.30.138.251   <none>        8080/TCP   9s
 ```
 --- 
 
-### 2.3. Prometheus Expression Browser へのログイン方法
+### 2.3. Prometheus Expression Browser での PromQL クエリ実行
 
-OpenShift Web コンソール上から Prometheus の Web UI にアクセスします。
+---
 
-- 「モニタリング」->「メトリクス」を選択しクエリ入力画面に遷移します。
-- 「Platform Prometheus UI」から Prometheus の Expression Browser に遷移することを確認します。
-  - 認証画面で「Log in with OpenShift」を選択し、 OpenShift Web コンソールログイン時と同じクラスタ管理ユーザのログイン情報を入力します。
-- 「Authorize Access」の画面が表示された場合はチェックを変更せずに画面下部の「Allow selected permissions」を選択します。
+#### 2.3.1. Prometheus Expression Browser に遷移
+
+「Platform Prometheus UI」から Prometheus の Expression Browser に遷移することを確認します。
+
+---
+
+##### 2.3.1.1 Prometheus Web UI へのアクセス
+「Networking」->「Routes」を選び、"Prometheus.." と入力して "prometheus-k8s" のRouteを検索します。
+
+「Location」欄にあるリンクを選択し、Prometheus の Web UI にアクセスします。
+
+![](./images/expression_prometheus_ui.png)
+
+<!-- 
+- 「Observe」->「Metrics」を選択しクエリ入力画面に遷移します。
+-->
+
+---
+
+##### 2.3.1.2 クラスタ管理ユーザでログイン
+認証画面で「Log in with OpenShift」を選択し、 OpenShift Web コンソールログイン時と同じクラスタ管理ユーザのログイン情報を入力します。
+
+![](./images/expression_prometheus_login_with_openshift.png)
+
+![](./images/expression_prometheus_login_with_openshift_admin.png)
+
+「Authorize Access」の画面が表示された場合はチェックを変更せずに画面下部の「Allow selected permissions」を選択します。
+
+![](./images/expression_prometheus_login_with_openshift_admin_authorize.png)
 
 --- 
 
@@ -280,16 +322,25 @@ PromQL クエリの基本形式：メトリック名{key=value,...}[時間範囲
   - `apiserver_request_total`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
+   ![](./images/expression_prometheus_promql.png)
+  - 「Graph」タブに切り替えて確認する
+   ![](./images/expression_prometheus_promql_graph.png)
+
+---
+
 - 上記クエリに対して `{}` 内にラベルを指定することで API Server に対する Deployments リソースに対する GET リクエストの合計数のみを表示する
-  -  `apiserver_request_total{code="200",contentType="application/json",endpoint="https",job="apiserver",namespace="default",resource="deployments",service="kubernetes",verb="GET"}`
+  - `apiserver_request_total{code="200",endpoint="https",job="apiserver",namespace="default",resource="deployments",service="kubernetes",verb="GET"}`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
     - 指定したラベル条件に一致したラベルを持つメトリクスのみ表示できていることを確認する。
+    ![](./images/expression_prometheus_promql_label.png)
+
 - 上記クエリに対して `[]` 内に時間の範囲を指定することで API Server に対する http リクエストの合計数の過去 5分間に採取した値のセット (Range vector) が表示されることを確認する
-  - `apiserver_request_total{code="200",contentType="application/json",endpoint="https",job="apiserver",namespace="default",resource="deployments",service="kubernetes",verb="GET"}[5m]`
+  - `apiserver_request_total{code="200",endpoint="https",job="apiserver",namespace="default",resource="deployments",service="kubernetes",verb="GET"} [5m]`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
     - 直近 5分間に Prometheus が採取した値のセットが表示されることを確認する
+    ![](./images/expression_prometheus_promql_label_5m.png)
 
 次に、コンテナのメモリ使用量を表示するメトリクス container_memory_working_set_bytes からコンテナのメモリ使用量を確認します。
 
@@ -305,13 +356,19 @@ PromQL クエリの基本形式：メトリック名{key=value,...}[時間範囲
   - `sum(container_memory_working_set_bytes{namespace="monitoring-example-<開発ユーザID>",container!="",image!=""} / 1024 / 1024) by (pod)`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
-    - 各 Pod ごとにコンテナのメモリ使用量が合計された値が出力されることを確認する
+    - Pod のコンテナのメモリ使用量が合計された値が出力されることを確認する
+    ![](./images/expression_prometheus_promql_sum.png)
   - 「Graph」タブに切り替えてグラフが表示されることを確認する
+    ![](./images/expression_prometheus_promql_sum_graph.png)
+
+---
+
 - 上記クエリに対して関数 `floor` を利用することで小数値を切り捨てた MiB 単位で表示できることを確認する
   - `floor(sum(container_memory_working_set_bytes{namespace="monitoring-example-<開発ユーザ ID>",container!="",image!=""} / 1024 / 1024) by (pod))`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
     - 小数点以下が切り捨てられたメモリ使用量が出力されることを確認する
+    ![](./images/expression_prometheus_promql_sum.png)
 
 PromQL のその他の演算子、関数等の詳細は Prometheus のドキュメントを参照
 
@@ -319,11 +376,15 @@ https://prometheus.io/docs/prometheus/latest/querying/basics/
 
 ## 3. 開発者向けユーザ定義 Project に対する監視の利用
 
+---
+
 ### 3.1. 開発者向けユーザ定義 Project に対する監視の有効化
 
 ユーザ定義 Project に対する監視の有効化は cluster-admin ロールを持つクラスタ管理者が行える作業となっています。そのため、特定の Project の監視を有効化したい場合は開発者がクラスタ管理者に依頼し、クラスタ管理者が有効化を実施するフローとなります。
 
-まず、 Cluster Monitoring コンポーネントの設定を行う cluster-monitoring-config ConfigMap オブジェクトを作成し、ユーザ定義 Project に対する監視の有効化のため enableUserWorkload パラメーターを true に設定します(講師が実施)。
+まず、 Cluster Monitoring コンポーネントの設定を行う cluster-monitoring-config ConfigMap オブジェクトを作成し、ユーザ定義 Project に対する監視の有効化のため enableUserWorkload パラメーターを true に設定します。
+
+**(講師が実施します)**
 
 ```
 1. 管理者権限のユーザでログインする
@@ -344,14 +405,32 @@ EOF
 
 これにより prometheus-operator、 prometheus-user-workload および thanos-ruler-user-workload Pod が openshift-user-workload-monitoring プロジェクトで実行されます。
 
+---
+
+確認してみましょう。
+
 ```
 $ oc get pod -n openshift-user-workload-monitoring
+
+出力例:
+
 NAME                                   READY   STATUS    RESTARTS   AGE
-prometheus-operator-7c4677965d-2llrr   2/2     Running   0          46s
-prometheus-user-workload-0             5/5     Running   1          43s
-prometheus-user-workload-1             5/5     Running   1          43s
-thanos-ruler-user-workload-0           3/3     Running   0          39s
-thanos-ruler-user-workload-1           3/3     Running   0          39s
+prometheus-operator-5d8889776c-pt84p   2/2     Running   0          17s
+```
+
+Prometheus Operator Pod が、各Pod を作成しますので少し待ちます。
+
+```
+$ oc get pod -n openshift-user-workload-monitoring
+
+出力例:
+
+NAME                                   READY   STATUS    RESTARTS   AGE
+prometheus-operator-5d8889776c-pt84p   2/2     Running   0          32s
+prometheus-user-workload-0             5/5     Running   0          14s
+prometheus-user-workload-1             5/5     Running   0          14s
+thanos-ruler-user-workload-0           3/3     Running   0          14s
+thanos-ruler-user-workload-1           3/3     Running   0          14s
 ```
 
 --- 
@@ -360,16 +439,36 @@ thanos-ruler-user-workload-1           3/3     Running   0          39s
 
 ユーザ定義 Project で監視設定を行うためには ServiceMonitor などの監視設定を行うオブジェクトを作成するための monitoring-edit 権限をアプリケーション開発ユーザに割り当てます。
 
-```
+
 管理者権限のユーザでログインする
-oc login -u ${ADMINID} -p openshift
+```
+$ oc login -u ${ADMINID} -p openshift
+```
+
 
 アプリケーション開発ユーザに monitoring-edit 権限付与
-oc adm policy add-role-to-user monitoring-edit ${DEVID} -n monitoring-example-${DEVID}
+```
+$ oc adm policy add-role-to-user monitoring-edit ${DEVID} -n monitoring-example-${DEVID}
+```
 
-アプリケーション開発ユーザへの切り替え
-oc adm config get-contexts
-oc adm config use-context <get-contexts で確認したコンテキスト名> 
+```
+$ oc adm config get-contexts
+
+出力例:
+
+          monitoring-example-user1-dev/172-30-0-1:443/user1   172-30-0-1:443           user1/172-30-0-1:443   monitoring-example-user1-dev
+*         openshift-terminal/172-30-0-1:443/user1             172-30-0-1:443           user1/172-30-0-1:443   openshift-terminal
+          user1-context                                       https://172.30.0.1:443   user1                  openshift-terminal
+```
+
+確認したコンテキスト名を指定し、アプリケーション開発ユーザへ切り替え
+
+```
+実行例: $ oc adm config use-context <確認したコンテキスト名>
+
+$ oc adm config use-context monitoring-example-user1-dev/172-30-0-1:443/user1
+
+Switched to context "monitoring-example-user1-dev/172-30-0-1:443/user1".
 ```
 
 --- 
@@ -380,18 +479,37 @@ oc adm config use-context <get-contexts で確認したコンテキスト名>
 
 アプリケーションに対して oc rsh によりアプリケーションの公開するエンドポイントにローカルでアクセスし、アプリケーションの挙動とメトリクス情報の確認を行います。
 
+
+アプリケーションにログイン
 ```
-1. アプリケーションにログイン
-oc rsh deploy/prometheus-example-app
+$ oc rsh deploy/prometheus-example-app
+```
 
-2. アプリケーションへのアクセス確認
+アプリケーションへのアクセス確認
+```
 ~ $ wget -q -O - localhost:8080/
-Hello from example application.
 
+出力例: 
+
+Hello from example application.
+```
+
+404エラー: /err
+```
 ~ $ wget -q -O - localhost:8080/err
+
+出力例: 
+
 wget: server returned error: HTTP/1.1 404 Not Found
 
+```
+
+メトリクス出力: /metrics
+```
 ~ $ wget -q -O - localhost:8080/metrics
+
+出力例: 
+
 # HELP http_requests_total Count of all HTTP requests
 # TYPE http_requests_total counter
 http_requests_total{code="200",method="get"} 1
@@ -399,8 +517,10 @@ http_requests_total{code="404",method="get"} 1
 # HELP version Version information about this binary
 # TYPE version gauge
 version{version="v0.1.0"} 1
+```
 
-3. アプリケーションからログアウト
+アプリケーションからログアウト
+```
 ~ $ exit
 ```
 
@@ -410,9 +530,9 @@ version{version="v0.1.0"} 1
 
 Prometheus が app: prometheus-example-app ラベルを持つ Service オブジェクトに対してサービスディスカバリを行って監視するよう ServiceMonitor オブジェクトを作成します。
 
+ServiceMonitor オブジェクトを作成
 ```
-1. ServiceMonitor オブジェクトを作成
-cat << EOF | oc apply -f -
+$ cat << EOF | oc apply -f -
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -429,9 +549,14 @@ spec:
     matchLabels:
       app: prometheus-example-app
 EOF
+```
 
-2. ServiceMonitor オブジェクトを確認
-oc get servicemonitor
+ServiceMonitor オブジェクトを確認
+```
+$ oc get servicemonitor
+
+出力例: 
+
 NAME                         AGE
 prometheus-example-monitor   11s
 ```
@@ -464,41 +589,88 @@ EOF
 
 先程設定したサンプルアプリケーションに対する監視が動作していることを確認するため、Web コンソールから一度ログアウトし、開発ユーザでログインし直します。
 
+![](./images/logout.png) 
+
+![](./images/login_dev.png) 
+
+Developer パースペクティブに切り替え
+
+![](./images/login_dev_perspective.png)
+
+「Observe」->「monitoring-example-<開発ユーザID>」プロジェクトを開く
+
+![](./images/devp_project.png)
+
 --- 
 
-#### 3.6.1. メトリクス
+#### 3.6.1. メトリクス (Developer パースペクティブ)
 
-「モニタリング」->「メトリクス」タブから任意のクエリを実行できます。ただし、出力結果は監視を有効にした Project の範囲となります。
+「Obserbe」->「Metrics」タブから任意のクエリを実行できます。ただし、出力結果は監視を有効にした Project の範囲となります。
 
 クエリの種類として「カスタムクエリ」を選択し、 `http_requests_total` クエリを実行するとサンプルアプリケーションが `/metrics` エンドポイントで公開しているメトリクスを取得できることが確認できます。
 
+![](./images/devp_metrics.png)
+
+![](./images/devp_httprequesttotal.png)
+
+
 --- 
 
-#### 3.6.2. アラート
+#### 3.6.2. アラート (Developer パースペクティブ)
 
-「モニタリング」->「アラート」タブから PrometheusRule で定義したアラートを確認できます。
+「Obserbe」->「Alerting」タブから PrometheusRule で定義したアラートを確認できます。
+
+![](./images/devp_alerting.png)
 
 実際にアラートが通知される状況を作り出し、アラート状態が「Firing」になることを確認します。
 
-```
-1. アプリケーションにログイン
-oc rsh deploy/prometheus-example-app
+コンソール右上から、Web Terminal を起動 (起動していない場合)
 
-2. HTTP リクエストエラーの急増を再現
-for i in `seq 1 100`
+![](./images/devp_terminal.png)
+
+![](./images/devp_terminal_init.png)
+
+アプリケーションにログイン
+```
+$ oc rsh deploy/prometheus-example-app
+```
+
+HTTP リクエストエラーの急増を再現
+```
+実行例: 
+
+~ $ for i in `seq 1 100`
 do
   wget -q -O - localhost:8080/err
 done
 
-3. アプリケーションからログアウト
+出力例:
+...
+wget: server returned error: HTTP/1.1 404 Not Found
+wget: server returned error: HTTP/1.1 404 Not Found
+wget: server returned error: HTTP/1.1 404 Not Found
+wget: server returned error: HTTP/1.1 404 Not Found
+wget: server returned error: HTTP/1.1 404 Not Found
+...
+
+```
+
+アプリケーションからログアウト
+```
 ~ $ exit
 ```
 
+アラート状態が、「Firing」になっていることを確認
+
+![](./images/devp_alerting_firing.png)
+
 --- 
 
-#### 3.6.3. ダッシュボード
+#### 3.6.3. ダッシュボード (Developer パースペクティブ)
 
-「モニタリング」->「ダッシュボード」タブからリソース使用率等の情報を確認できます。
+「Observe」->「Dashboards」タブからリソース使用率等の情報を確認できます。
+
+![](./images/devp_dashboard.png)
 
 ## 4. クラスタで問題が発生した場合のオペレーションの流れ
 
