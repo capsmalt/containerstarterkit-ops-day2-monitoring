@@ -1,53 +1,83 @@
-# 1. OpenShift モニタリングハンズオン
-
-- [1. OpenShift モニタリングハンズオン](#1-openshift-cluster-monitoring-handson)
-  - [1.1. はじめに](#11-はじめに)
-  - [1.2. Cluster Monitoring の監視情報へのアクセス](#12-cluster-monitoring-の監視情報へのアクセス)
-    - [1.2.1. OpenShift Web コンソール (Administrator パースペクティブ)](#121-openshift-web-コンソール-administrator-パースペクティブ)
-      - [1.2.1.1. Overview](#1211-overview)
-      - [1.2.1.2. Project の詳細](#1212-project-の詳細)
-      - [1.2.1.3. アラート](#1213-アラート)
-      - [1.2.1.4. ダッシュボード](#1214-ダッシュボード)
-      - [1.2.1.5. メトリクス](#1215-メトリクス)
-  - [1.3. Expression Browser でのメトリクス情報参照](#13-expression-browser-でのメトリクス情報参照)
-    - [1.3.1. 監視対象サンプルアプリケーションのデプロイ](#131-監視対象サンプルアプリケーションのデプロイ)
-    - [1.3.2. Prometheus Expression Browser へのログイン方法](#132-prometheus-expression-browser-へのログイン方法)
-      - [1.3.2.1. PromQL クエリの実行](#1321-promql-クエリの実行)
-  - [1.4. 開発者向けユーザ定義 Project に対する監視の利用](#14-開発者向けユーザ定義-project-に対する監視の利用)
-    - [1.4.1. 開発者向けユーザ定義 Project に対する監視の有効化](#141-開発者向けユーザ定義-project-に対する監視の有効化)
-    - [1.4.2. ユーザ定義 Project に監視を設定するための権限付与](#142-ユーザ定義-project-に監視を設定するための権限付与)
-    - [1.4.3. 監視対象サンプルアプリケーションの公開するメトリクスの確認](#143-監視対象サンプルアプリケーションの公開するメトリクスの確認)
-    - [1.4.4. サービスの監視方法の設定](#144-サービスの監視方法の設定)
-    - [1.4.5. アラートルールの作成](#145-アラートルールの作成)
-    - [1.4.6. OpenShift Web コンソール (Developer パースペクティブ)](#146-openshift-web-コンソール-developer-パースペクティブ)
-      - [1.4.6.1. メトリクス](#1461-メトリクス)
-      - [1.4.6.2. アラート](#1462-アラート)
-      - [1.4.6.3. ダッシュボード](#1463-ダッシュボード)
-  - [1.5. クラスタで問題が発生した場合のオペレーションの流れ](#15-クラスタで問題が発生した場合のオペレーションの流れ)
-
-## 1.1. はじめに
+# OpenShift モニタリングハンズオン
+## このハンズオンの目的
 
 このハンズオンは OpenShift の Cluster Monitoring が提供する Prometheus, Grafana を利用した OpenShift クラスタおよびアプリケーションの監視方法を習得すること、またその仕組みの概要を実際に確認して理解することを目的とします。
 
-## 1.2. Cluster Monitoring の監視情報へのアクセス
+---
+## アジェンダ
+
+- [1. Cluster Monitoring の監視情報へのアクセス](#1-cluster-monitoring-の監視情報へのアクセス)
+  - [1.1. OpenShift Web コンソール に管理者ユーザでログイン](#11-openshift-web-コンソール-に管理者ユーザでログイン)
+  - [1.2. OpenShift Web コンソール (Administrator パースペクティブ) の確認](#12-openshift-web-コンソール-administrator-パースペクティブ-の確認)
+  <!--
+    - [1.2.1. Overview](#121-overview)
+    - [1.2.2. Project の詳細](#122-project-の詳細)
+    - [1.2.3. アラート](#123-アラート)
+    - [1.2.4. ダッシュボード](#124-ダッシュボード)
+    - [1.2.5. メトリクス](#125-メトリクス)
+  -->
+- [2. Expression Browser でのメトリクス情報参照](#2-expression-browser-でのメトリクス情報参照)
+  - [2.1. OpenShift Web コンソール に管理者ユーザでログイン](#21-openshift-web-コンソール-に管理者ユーザでログイン)
+  - [2.2. 監視対象サンプルアプリケーションのデプロイ](#21-監視対象サンプルアプリケーションのデプロイ)
+  - [2.3. Prometheus Expression Browser へのログイン方法](#22-prometheus-expression-browser-へのログイン方法)
+  <!--
+    - [2.3.1. PromQL クエリの実行](#221-promql-クエリの実行)
+  -->
+- [3. 開発者向けユーザ定義 Project に対する監視の利用](#3-開発者向けユーザ定義-project-に対する監視の利用)
+  - [3.1. 開発者向けユーザ定義 Project に対する監視の有効化](#31-開発者向けユーザ定義-project-に対する監視の有効化)
+  - [3.2. ユーザ定義 Project に監視を設定するための権限付与](#32-ユーザ定義-project-に監視を設定するための権限付与)
+  - [3.3. 監視対象サンプルアプリケーションの公開するメトリクスの確認](#33-監視対象サンプルアプリケーションの公開するメトリクスの確認)
+  - [3.4. サービスの監視方法の設定](#34-サービスの監視方法の設定)
+  - [3.5. アラートルールの作成](#35-アラートルールの作成)
+  - [3.6. OpenShift Web コンソール (Developer パースペクティブ)](#36-openshift-web-コンソール-developer-パースペクティブ)
+  <!--
+    - [3.6.1. メトリクス](#361-メトリクス)
+    - [3.6.2. アラート](#362-アラート)
+    - [3.6.3. ダッシュボード](#363-ダッシュボード)
+  -->
+- [4. クラスタで問題が発生した場合のオペレーションの流れ](#4-クラスタで問題が発生した場合のオペレーションの流れ)
+
+--- 
+## 0. ハンズオン前準備
+
+### ユーザアカウントの割り当て
+---
+* Etherpad にて、user1,user2,...の箇所へ、メールアドレスを入力してください。ユーザの重複はできないので、空いている箇所へ記入をお願いします。
+* **手順内に"userX"といった記載がありますが、Xの部分を自分のアカウントの番号に置き換えて実施ください。**  
+
+## 1. Cluster Monitoring の監視情報へのアクセス
 
 OpenShift Cluster Monitoring の Prometheus が取得したメトリクス情報は、 OpenShift の Web コンソールから確認できます。また、Prometheus、Alertmanager、Grafana、Thanos Querier といったような Web UI を提供している Cluster Monitoring のコンポーネントに直接アクセスすることも可能です。
 
 Web コンソール上で監視情報にどのようにアクセスできるか確認をしていきます。
 アクセスには clsuter-admin ロールのようなクラスタ管理権限が必要となるため、クラスタ管理ユーザを使用して確認を行います。
 
-### 1.2.1. OpenShift Web コンソール (Administrator パースペクティブ)
+---
+
+### 1.1. OpenShift Web コンソール に管理者ユーザでログイン
+WebブラウザよりOpenShift Web Conosole へアクセスします。  
+※URLはEtherpadの環境情報"Openshift Console"を参照  
+"userX"でログインします。  
+![](./images/login.png)  
+
+---
+
+### 1.2. OpenShift Web コンソール (Administrator パースペクティブ) の確認
 
 クラスタ管理者がクラスタレベルの監視情報や各プロジェクトの監視情報を確認するためにアクセスします。クラスタレベルの管理者権限や参照権限を持つユーザのみアクセスできます。
 
 OpenShift クラスタにログイン後、画面左上のパースペクティブ変更ドロワーメニューから「管理者」を選択すると Administrator パースペクティブを表示できます。
 
+![](./images/console_admin.png)  
+
 --- 
 
-#### 1.2.1.1. Overview
+#### 1.2.1. Overview
 
 ドロワーメニューの「ホーム」 -> 「概要」 を選択し、クラスタの現在の状態のサマリー画面を表示します。
 この画面でアラートおよびリソース使用状況の概要が確認できます。
+
+![](./images/console_overview.png)  
 
 例えば、ステータス欄では以下のような情報が確認でき、なにか異常がある場合は "Warning" や "Critical" アイコンが表示されます。
 
@@ -58,27 +88,32 @@ OpenShift クラスタにログイン後、画面左上のパースペクティ�
 
 --- 
 
-#### 1.2.1.2. Project の詳細
+#### 1.2.2. Project の詳細
 
-「ホーム」 -> 「プロジェクト」 -> <任意の Project 名> を選択して Project ごとのステータスとリソース使用状況を表示します。
+「Home」 -> 「Projects」 -> <任意の Project 名> を選択して Project ごとのステータスとリソース使用状況を表示します。
 例えば、 "openshift-monitoring" を検索し、 openshift-monitoring project を選択すると、 Cluster Monitoring を構成する Pod のリソース使用状況が確認できます。
 
+![](./images/console_overview_project.png)  
 --- 
 
-#### 1.2.1.3. アラート
+#### 1.2.3. アラート
 
-「モニタリング」 -> 「アラート」 を選択して現在クラスタで検知し通知がされているアラートの情報を表示します。事前に通知を受け取る外部システムの設定が行われている場合、ここに表示されたアラートが設定したフィルタリングルールに則り通知されます。
+「Observe」 -> 「Alerting」 を選択して現在クラスタで検知し通知がされているアラートの情報を表示します。事前に通知を受け取る外部システムの設定が行われている場合、ここに表示されたアラートが設定したフィルタリングルールに則り通知されます。
+
+![](./images/console_overview_observe_alert.png)
 
 また、 "Warning" や "Critical" といった重大度のアラートは Web コンソールの右上にあるベルのアイコンを選択して通知欄で確認することもできます。
 
+![](./images/console_overview_alert_notification.png)
+
 現在のクラスタ環境ではクラスタアップデートが利用可能であることを示す UpdateAvailable、AlertManager が機能していることの確認のための Watchdog、外部システムへの通知が設定されていないことを示す AlertmanagerReceiverNotConfigured が通知されていることが確認できます。
 
-通知を受け取る外部システムの設定が行われていない場合、 通知欄もしくは「ホーム」->「概要」から  AlertmanagerReceiverNotConfigured アラートについて Configure を選択すると外部システムへの通知設定が行なえます。Administration -> Cluster Settings -> Global Configuration -> Alertmanager に移動することでも設定可能です。
+通知を受け取る外部システムの設定が行われていない場合、 通知欄もしくは「Home」->「Overview」から  AlertmanagerReceiverNotConfigured アラートについて Configure を選択すると外部システムへの通知設定が行なえます。Administration -> Cluster Settings -> Global Configuration -> Alertmanager に移動することでも設定可能です。
 
 外部システムへの通知設定はアラートレシーバを作成することで設定します。
 アラートレシーバには通知を行うアラートのラベル *1 によるフィルタリング設定、レシーバタイプとして通知する外部システムを設定します。
 
-デフォルトで定義されているレシーバは以下の 3 種類です。ただし、これらのレシーバには通知先システムを指定するレシーバタイプが設定されていないため、設定を行っていきます(講師が実施)。
+デフォルトで定義されているレシーバは以下の 3 種類です。ただし、これらのレシーバには通知先システムを指定するレシーバタイプが設定されていないため、設定を行っていきます **(講師が実施します)**。
 
 -  Critical : 重大度が Critical のアラートを通知
 -  Default : 他のレシーバーがキャッチしていないすべてのアラートを通知
@@ -90,49 +125,69 @@ OpenShift クラスタにログイン後、画面左上のパースペクティ�
 
 --- 
 
-#### 1.2.1.4. ダッシュボード
+#### 1.2.4. ダッシュボード
 
-「モニタリング」->「ダッシュボード」を選択するとクラスタの主要なメトリクスをグラフ化したダッシュボードを確認できます。
+「Observe」->「Dashboards」を選択するとクラスタの主要なメトリクスをグラフ化したダッシュボードを確認できます。
 
 各ダッシュボードについてどのような情報が確認できるか一通り確認してみてください。
 
+![](./images/console_overview_observe_dashboards.png)
+
 --- 
 
-#### 1.2.1.5. メトリクス
+#### 1.2.5. メトリクス
 
-「モニタリング」->「メトリクス」を選択して任意のクエリ実行画面が表示します。
+「Observe」->「Metrics」を選択して任意のクエリ実行画面が表示します。
 
-例えば、メトリクスの画面で「サンプルクエリーの挿入」をクリックすると以下のクエリが挿入され、取得したメトリクス値と時系列のグラフが表示されることを確認できます。
+![](./images/console_overview_observe_metrics.png)
+
+例えば、メトリクスの画面で「Insert example qurty(サンプルクエリーの挿入)」をクリックすると以下のクエリが挿入され、取得したメトリクス値と時系列のグラフが表示されることを確認できます。
 
 ```
 sort_desc(sum(sum_over_time(ALERTS{alertstate="firing"}[24h])) by (alertname))
 ```
 
+![](./images/console_overview_observe_metrics_sample.png)
+
 このクエリは、24 時間以内に発火(firing)されたアラートの回数をアラートごとに集計し、降順で表示するクエリとなります。このように任意のメトリクス情報は Prometheus Query Language(PromQL) 形式のクエリを実行することで確認できます。
 
 --- 
 
-## 1.3. Expression Browser でのメトリクス情報参照
+## 2. Expression Browser でのメトリクス情報参照
 
-先程は Web コンソール上のメトリクス画面でクエリを実行しましたが、 Cluster Monitoring のメトリクス収集を担う Prometheus が持つ Expression Browser 上で PromQL クエリを実行することも可能です。
+前の手順では、Web コンソール上のメトリクス画面でクエリを実行しましたが、 Cluster Monitoring のメトリクス収集を担う Prometheus が持つ Expression Browser 上で PromQL クエリを実行することも可能です。
 Expression Browser 上でクエリを実行し、 PromQL におけるラベルの指定方法、時間範囲の指定方法、演算子、関数の利用方法を確認します。
 
-### 1.3.1. 監視対象サンプルアプリケーションのデプロイ
+### 2.1. OpenShift Web コンソール に管理者ユーザでログイン
+WebブラウザよりOpenShift Web Conosole へアクセスし、クラスタ管理ユーザでログインします。
+
+※URLはEtherpadの環境情報"Openshift Console"を参照  
+"userX"でログインします。  
+![](./images/login.png)  
+
+### 2.2. 監視対象サンプルアプリケーションのデプロイ
 
 監視対象となるサンプルアプリケーションを起動します。 Deployment, およびアプリケーションを公開する Service の作成を行います。
 
-Web Console にアクセスし、クラスタ管理ユーザでログインします。その後、 Web Terminal を起動して以下を実行します。
+Web Terminal を起動します。
+
+![](./images/expression_terminal_run.png)
+![](./images/expression_terminal.png)
+
+
+以下を Web Terminal 上で実行します。
+
 
 ```
 1. クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定
-ADMINID=<管理ユーザ ID>
-DEVID=<開発ユーザ ID>
+ADMINID=<管理ユーザID>  
+DEVID=<開発ユーザID>
 
 2. 開発者権限のユーザでログインする
-oc login -u user${DEVID} -p openshift <クラスタ API アドレス>
+oc login -u ${DEVID} -p openshift
 
 3. Project 作成
-oc new-project monitoring-example${DEVID}
+oc new-project monitoring-example-${DEVID}
 
 4. Deployment の作成
 cat << EOF | oc apply -f -
@@ -142,7 +197,7 @@ metadata:
   labels:
     app: prometheus-example-app
   name: prometheus-example-app
-  namespace: monitoring-example${DEVID}
+  namespace: monitoring-example-${DEVID}
 spec:
   replicas: 1
   selector:
@@ -174,7 +229,7 @@ metadata:
   labels:
     app: prometheus-example-app
   name: prometheus-example-app
-  namespace: monitoring-example${DEVID}
+  namespace: monitoring-example-${DEVID}
 spec:
   ports:
   - port: 8080
@@ -186,6 +241,7 @@ spec:
   type: ClusterIP
 EOF
 
+
 6. オブジェクトの作成及び Pod の起動確認
 oc get pod,svc
 NAME                                          READY   STATUS    RESTARTS   AGE
@@ -196,7 +252,7 @@ service/prometheus-example-app   ClusterIP   172.30.150.53   <none>        8080/
 ```
 --- 
 
-### 1.3.2. Prometheus Expression Browser へのログイン方法
+### 2.3. Prometheus Expression Browser へのログイン方法
 
 OpenShift Web コンソール上から Prometheus の Web UI にアクセスします。
 
@@ -207,7 +263,7 @@ OpenShift Web コンソール上から Prometheus の Web UI にアクセスし�
 
 --- 
 
-#### 1.3.2.1. PromQL クエリの実行
+#### 2.3.1. PromQL クエリの実行
 
 クエリの実行例として、 OpenShift を構成するコンポーネントである API Server が OpenShift の状態変更によりそれぞれ受け付ける http リクエストの合計数を表示します。メトリクス http_requests_total から http リクエストの合計数を確認します。
 
@@ -246,13 +302,13 @@ PromQL クエリの基本形式：メトリック名{key=value,...}[時間範囲
   - “floor” などの関数を利用可能
 
 - 集計演算子 `sum( ~ ) by (pod_name)` を利用してコンテナのメモリ使用量 (Byte 単位) を 各Pod ごとに集計し、 Scalar 値による演算( `/ 1024 / 1024` ) を行うことでMiB 単位で表示できることを確認する
-  - `sum(container_memory_working_set_bytes{namespace="monitoring-example<開発ユーザ ID>",container!="",image!=""} / 1024 / 1024) by (pod)`
+  - `sum(container_memory_working_set_bytes{namespace="monitoring-example-<開発ユーザID>",container!="",image!=""} / 1024 / 1024) by (pod)`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
     - 各 Pod ごとにコンテナのメモリ使用量が合計された値が出力されることを確認する
   - 「Graph」タブに切り替えてグラフが表示されることを確認する
 - 上記クエリに対して関数 `floor` を利用することで小数値を切り捨てた MiB 単位で表示できることを確認する
-  - `floor(sum(container_memory_working_set_bytes{namespace="monitoring-example<開発ユーザ ID>",container!="",image!=""} / 1024 / 1024) by (pod))`
+  - `floor(sum(container_memory_working_set_bytes{namespace="monitoring-example-<開発ユーザ ID>",container!="",image!=""} / 1024 / 1024) by (pod))`
   - 「Execute」を選択しクエリを実行する
   - 「Table」タブにクエリ実行結果が出力されることを確認する
     - 小数点以下が切り捨てられたメモリ使用量が出力されることを確認する
@@ -261,9 +317,9 @@ PromQL のその他の演算子、関数等の詳細は Prometheus のドキュ�
 
 https://prometheus.io/docs/prometheus/latest/querying/basics/
 
-## 1.4. 開発者向けユーザ定義 Project に対する監視の利用
+## 3. 開発者向けユーザ定義 Project に対する監視の利用
 
-### 1.4.1. 開発者向けユーザ定義 Project に対する監視の有効化
+### 3.1. 開発者向けユーザ定義 Project に対する監視の有効化
 
 ユーザ定義 Project に対する監視の有効化は cluster-admin ロールを持つクラスタ管理者が行える作業となっています。そのため、特定の Project の監視を有効化したい場合は開発者がクラスタ管理者に依頼し、クラスタ管理者が有効化を実施するフローとなります。
 
@@ -271,7 +327,7 @@ https://prometheus.io/docs/prometheus/latest/querying/basics/
 
 ```
 1. 管理者権限のユーザでログインする
-oc login -u user${ADMINID} -p openshift
+oc login -u ${ADMINID} -p openshift
 
 2. cluster-monitoring-config ConfigMap オブジェクトを作成
 cat << EOF | oc apply -f -
@@ -300,16 +356,16 @@ thanos-ruler-user-workload-1           3/3     Running   0          39s
 
 --- 
 
-### 1.4.2. ユーザ定義 Project に監視を設定するための権限付与
+### 3.2. ユーザ定義 Project に監視を設定するための権限付与
 
 ユーザ定義 Project で監視設定を行うためには ServiceMonitor などの監視設定を行うオブジェクトを作成するための monitoring-edit 権限をアプリケーション開発ユーザに割り当てます。
 
 ```
 管理者権限のユーザでログインする
-oc login -u user${ADMINID} -p openshift
+oc login -u ${ADMINID} -p openshift
 
 アプリケーション開発ユーザに monitoring-edit 権限付与
-oc adm policy add-role-to-user monitoring-edit user${DEVID} -n monitoring-example${DEVID}
+oc adm policy add-role-to-user monitoring-edit ${DEVID} -n monitoring-example-${DEVID}
 
 アプリケーション開発ユーザへの切り替え
 oc adm config get-contexts
@@ -318,7 +374,7 @@ oc adm config use-context <get-contexts で確認したコンテキスト名>
 
 --- 
 
-### 1.4.3. 監視対象サンプルアプリケーションの公開するメトリクスの確認
+### 3.3. 監視対象サンプルアプリケーションの公開するメトリクスの確認
 
 先程実行したサンプルアプリケーションは Prometheus 形式のメトリクスを `/metrics` で公開しており、Prometheus に対してサービスディスカバリの設定をすることで Prometheus でメトリクスの収集が可能です。
 
@@ -350,7 +406,7 @@ version{version="v0.1.0"} 1
 
 --- 
 
-### 1.4.4. サービスの監視方法の設定
+### 3.4. サービスの監視方法の設定
 
 Prometheus が app: prometheus-example-app ラベルを持つ Service オブジェクトに対してサービスディスカバリを行って監視するよう ServiceMonitor オブジェクトを作成します。
 
@@ -363,7 +419,7 @@ metadata:
   labels:
     k8s-app: prometheus-example-monitor
   name: prometheus-example-monitor
-  namespace: monitoring-example${DEVID}
+  namespace: monitoring-example-${DEVID}
 spec:
   endpoints:
   - interval: 30s
@@ -382,7 +438,7 @@ prometheus-example-monitor   11s
 
 --- 
 
-### 1.4.5. アラートルールの作成
+### 3.5. アラートルールの作成
 
 サンプルアプリケーションの公開するメトリクスを元に、閾値を指定して通知を行うアラートを設定する PrometheusRule を作成します。
 
@@ -392,7 +448,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: example-alert
-  namespace: monitoring-example${DEVID}
+  namespace: monitoring-example-${DEVID}
 spec:
   groups:
   - name: example
@@ -404,13 +460,13 @@ EOF
 
 --- 
 
-### 1.4.6. OpenShift Web コンソール (Developer パースペクティブ)
+### 3.6. OpenShift Web コンソール (Developer パースペクティブ)
 
 先程設定したサンプルアプリケーションに対する監視が動作していることを確認するため、Web コンソールから一度ログアウトし、開発ユーザでログインし直します。
 
 --- 
 
-#### 1.4.6.1. メトリクス
+#### 3.6.1. メトリクス
 
 「モニタリング」->「メトリクス」タブから任意のクエリを実行できます。ただし、出力結果は監視を有効にした Project の範囲となります。
 
@@ -418,7 +474,7 @@ EOF
 
 --- 
 
-#### 1.4.6.2. アラート
+#### 3.6.2. アラート
 
 「モニタリング」->「アラート」タブから PrometheusRule で定義したアラートを確認できます。
 
@@ -440,11 +496,11 @@ done
 
 --- 
 
-#### 1.4.6.3. ダッシュボード
+#### 3.6.3. ダッシュボード
 
 「モニタリング」->「ダッシュボード」タブからリソース使用率等の情報を確認できます。
 
-## 1.5. クラスタで問題が発生した場合のオペレーションの流れ
+## 4. クラスタで問題が発生した場合のオペレーションの流れ
 
 実際の運用時に OpenShift の Prometheus クラスターモニタリング、 EFK スタックを利用する場合は以下の流れで障害調査を行います。
 
@@ -460,7 +516,7 @@ NOTE: Grafana, Kibana でリソース使用量の傾向やログが確認でき�
 
   ```
   1. プロジェクトの選択
-  $ oc project monitoring-example${DEVID}
+  $ oc project monitoring-example-${DEVID}
   Now using project "monitoring-exampleXX" on server "https://master.rbfesmw-XXXX.open.redhat.com:443".
 
   2. テスト用アプリケーションの起動
@@ -492,4 +548,4 @@ NOTE: Grafana, Kibana でリソース使用量の傾向やログが確認でき�
 
 - Kibana で Pod のログを表示する
   - Kibana で以下のクエリを実行し、該当時刻のコンテナ再起動後に新しい Pod でプロセスが正常起動していることを確認する
-    - `kubernetes.namespace_name:"monitoring-example<開発ユーザ ID>" AND kubernetes.pod_name:"<対象 Pod 名>" AND message:"org.apache.catalina.startup.Catalina.start Server startup"`
+    - `kubernetes.namespace_name:"monitoring-example-<開発ユーザ ID>" AND kubernetes.pod_name:"<対象 Pod 名>" AND message:"org.apache.catalina.startup.Catalina.start Server startup"`
