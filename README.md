@@ -207,10 +207,10 @@ Web Terminal を起動します。
 
 以下を Web Terminal 上で実行します。
 
-クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定
+クラスタ管理ユーザ、アプリケーション開発ユーザの ID を設定（Web Terminalを再度開いた場合は都度実行すること)。
 ```
-$ ADMINID=<管理ユーザID>   // 例: user1
-$ DEVID=<開発ユーザID>     // 例: user1-dev
+$ ADMINID=$(oc whoami)
+$ DEVID=${ADMINID}-dev
 ```
 
 開発者権限のユーザでログイン
@@ -304,7 +304,7 @@ service/prometheus-example-app   ClusterIP   172.30.138.251   <none>        8080
 ---
 
 ##### 2.3.1.1 Prometheus Web UI へのアクセス
-「Networking」->「Routes」を選び、"Prometheus.." と入力して "prometheus-k8s" のRouteを検索します。
+「Networking」->「Routes」を選び、"prometheus" と入力して "prometheus-k8s" のRouteを検索します。
 
 「Location」欄にあるリンクを選択し、Prometheus の Web UI にアクセスします。
 
@@ -487,24 +487,10 @@ $ oc login -u ${ADMINID} -p openshift
 $ oc adm policy add-role-to-user monitoring-edit ${DEVID} -n monitoring-example-${DEVID}
 ```
 
-```
-$ oc adm config get-contexts
-
-出力例:
-
-          monitoring-example-user1-dev/172-30-0-1:443/user1   172-30-0-1:443           user1/172-30-0-1:443   monitoring-example-user1-dev
-*         openshift-terminal/172-30-0-1:443/user1             172-30-0-1:443           user1/172-30-0-1:443   openshift-terminal
-          user1-context                                       https://172.30.0.1:443   user1                  openshift-terminal
-```
-
-確認したコンテキスト名を指定し、アプリケーション開発ユーザへ切り替え
+アプリケーション開発ユーザーとしてOpenShiftに再ログイン。
 
 ```
-実行例: $ oc adm config use-context <確認したコンテキスト名>
-
-$ oc adm config use-context monitoring-example-user1-dev/172-30-0-1:443/user1
-
-Switched to context "monitoring-example-user1-dev/172-30-0-1:443/user1".
+$ oc login -u ${DEVID} -p openshift
 ```
 
 --- 
